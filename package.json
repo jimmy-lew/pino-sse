@@ -17,12 +17,10 @@
   ],
   "devDependencies": {
     "@antfu/eslint-config": "^6.7.3",
-    "@types/node": "^25.0.3",
     "@types/uuid": "^11.0.0",
     "eslint": "^9.39.2"
   },
   "dependencies": {
-    "h3": "^2.0.1-rc.6",
     "pino-abstract-transport": "^3.0.0",
     "tsdown": "^0.18.3",
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.56.0",
