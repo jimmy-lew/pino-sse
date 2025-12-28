@@ -1,10 +1,10 @@
 {
   "name": "pino-sse",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Pino transport for server side events",
   "license": "MIT",
   "author": "Jimmy Lew",
-  "main": "psse.ts",
+  "main": "./dist/psse.mjs",
   "scripts": {
     "lint": "eslint"
   },
@@ -24,6 +24,7 @@
   "dependencies": {
     "h3": "^2.0.1-rc.6",
     "pino-abstract-transport": "^3.0.0",
+    "tsdown": "^0.18.3",
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.56.0",
     "uuid": "^13.0.0",
     "uws-cors": "^1.0.0"
