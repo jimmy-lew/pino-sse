@@ -6,5 +6,6 @@ export default defineConfig (
     outDir: 'dist',
     minify: true,
     sourcemap: true,
+    exports: true,
   }
 )

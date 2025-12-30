@@ -5,8 +5,10 @@
   "license": "MIT",
   "author": "Jimmy Lew",
   "main": "./dist/psse.mjs",
+  "module": "./dist/psse.mjs",
+  "types": "./dist/psse.d.mts",
   "scripts": {
-    "build": "tsdown",
+    "build": "tsdown --dts",
     "lint": "eslint",
     "prepack": "pnpm build"
   },
