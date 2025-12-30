@@ -1,16 +1,25 @@
 {
   "name": "pino-sse",
-  "version": "1.0.1",
+  "version": "1.0.4",
   "description": "Pino transport for server side events",
   "license": "MIT",
   "author": "Jimmy Lew",
   "main": "./dist/psse.mjs",
   "scripts": {
-    "lint": "eslint"
+    "build": "tsdown",
+    "lint": "eslint",
+    "prepack": "pnpm build"
   },
   "bin": {
     "pino-sse": "./psse.ts"
   },
+  "exports": {
+    ".": "./dist/psse.mjs",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
   "keywords": [
     "pino",
     "sse"
