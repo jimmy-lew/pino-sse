@@ -52,7 +52,6 @@ export default async function (opts: SSETransportOptions = {
 
   return build(async (stream) => {
     for await (const obj of stream) {
-      obj["log_id"] = uuid()
       const log = JSON.stringify(obj)
       for (const conn of Object.values(connections)) {
         conn.cork(() => conn.write(`data: ${log}\n\n`))
