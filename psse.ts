@@ -1,69 +1,55 @@
 import build from 'pino-abstract-transport'
-import { v4 as uuid } from 'uuid'
-import { App } from 'uWebSockets.js'
-import type { HttpResponse, HttpRequest } from 'uWebSockets.js'
-import {cors} from 'uws-cors'
+import { Context, Hono } from 'hono'
+import { SSEStreamingApi, streamSSE } from 'hono/streaming'
+import { cors } from 'hono/cors'
+import { serve } from '@hono/node-server'
+import { nanoid } from 'nanoid'
 
-type Origin = string | RegExp | ((req: HttpRequest) => boolean | void);
-type HTTPMethod = 'GET' | 'HEAD' | 'POST' | 'PUT' | 'DELETE'
-type MaybeArray<T> = T | T[];
-interface CORSConfig {
-    origin?: Origin | boolean | Origin[];
-    methods?: boolean | undefined | null | '' | '*' | MaybeArray<HTTPMethod | (string & {})>;
-    allowedHeaders?: true | string | string[];
-    exposeHeaders?: true | string | string[];
-    credentials?: boolean;
+type CORSOptions = {
+    origin: string | string[] | ((origin: string, c: Context) => Promise<string | undefined | null> | string | undefined | null);
+    allowMethods?: string[] | ((origin: string, c: Context) => Promise<string[]> | string[]);
+    allowHeaders?: string[];
     maxAge?: number;
-    preflight?: boolean;
-}
+    credentials?: boolean;
+    exposeHeaders?: string[];
+};
 
 interface SSETransportOptions {
   port: number
   route?: string
-  cors?: CORSConfig
+  cors?: CORSOptions
 }
 
 export default async function (opts: SSETransportOptions = {
   port: 3333,
-  cors: {}
+  cors: { origin: '*' }
 }) {
-  const app = cors(App(), opts.cors)
-  const connections: Record<string, HttpResponse> = {}
+  const app = new Hono()
+  const connections: Record<string, SSEStreamingApi> = {}
 
   const route = opts.route ?? '/'
 
-  app.get(route, (conn) => {
-    const conn_id = uuid()
-    conn.cork(() => {
-      conn.writeHeader('Content-Type', 'text/event-stream')
-      conn.writeHeader('Connection', 'keep-alive')
-      conn.writeHeader('Cache-Control', 'no-cache')
+  app.use(route, cors())
+  app.get(route, (c) => {
+    const conn_id = nanoid()
+    return streamSSE(c, async (stream) => {
+      connections[conn_id] = stream
+      stream.onAbort(() => { delete connections[conn_id] })
+      while (true) { await stream.sleep(1000) }
     })
-    conn.writeStatus('200 OK')
-
-    connections[conn_id] = conn
-
-    conn.onAborted(() => {
-      delete connections[conn_id]
-    })
-
   })
-  .listen(opts.port, () => {})
+
+  const server = serve({ port: opts.port, fetch: app.fetch })
 
   return build(async (stream) => {
     for await (const obj of stream) {
-      const log = JSON.stringify(obj)
-      for (const conn of Object.values(connections)) {
-        conn.cork(() => conn.write(`data: ${log}\n\n`))
-      }
+      const data = JSON.stringify(obj)
+      await Promise.all(Object.values(connections).map((conn) => conn.writeSSE({ data })))
     }
   }, {
     async close(_) {
-      for (const conn of Object.values(connections)) {
-        conn.cork(() => conn.write('event: close\n'))
-        conn.close()
-      }
-      app.close()
+      await Promise.all(Object.values(connections).map((conn) => conn.close()))
+      server.close()
     },
     parseLine(line) {
       return JSON.parse(line)
