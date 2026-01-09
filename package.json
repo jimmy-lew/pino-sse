@@ -1,6 +1,6 @@
 {
   "name": "pino-sse",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Pino transport for server side events",
   "license": "MIT",
   "author": "Jimmy Lew",
