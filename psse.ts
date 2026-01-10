@@ -14,7 +14,7 @@ type CORSOptions = {
     exposeHeaders?: string[];
 };
 
-interface SSETransportOptions {
+export interface SSETransportOptions {
   port: number
   route?: string
   cors?: CORSOptions
